@@ -51,7 +51,7 @@ class ResidualBlock(nn.Module):
 
   hparams: HParams
   filters: int
-  quant_context: quant_config.QuantContext
+  dynamic_context: quant_config.DynamicContext
   strides: Tuple[int, int]
   train: bool
   dtype: Type[Any]
@@ -68,7 +68,7 @@ class ResidualBlock(nn.Module):
     hparams = self.hparams
     dtype = self.dtype
     train = self.train
-    quant_context = self.quant_context
+    dynamic_context = self.dynamic_context
 
     batch_norm = functools.partial(
         nn.BatchNorm,
@@ -81,7 +81,7 @@ class ResidualBlock(nn.Module):
         aqt_flax_layers.ConvAqt,
         use_bias=False,
         dtype=dtype,
-        quant_context=quant_context,
+        dynamic_context=dynamic_context,
         paxis_name=self.paxis_name,
         train=train)
 
@@ -165,7 +165,7 @@ class ResNet(nn.Module):
 
   num_classes: int
   hparams: HParams
-  quant_context: quant_config.QuantContext
+  dynamic_context: quant_config.DynamicContext
   num_filters: int
   train: bool
   dtype: Type[Any]
@@ -191,7 +191,7 @@ class ResNet(nn.Module):
         dtype=dtype,
         name='init_conv',
         train=self.train,
-        quant_context=self.quant_context,
+        dynamic_context=self.dynamic_context,
         paxis_name=self.paxis_name,
         hparams=hparams.conv_init,
     )(
@@ -217,7 +217,7 @@ class ResNet(nn.Module):
       x = ResidualBlock(
           filters=int(num_filters * filter_multiplier),
           hparams=block_hparams,
-          quant_context=self.quant_context,
+          dynamic_context=self.dynamic_context,
           strides=strides,
           train=self.train,
           dtype=dtype)(
@@ -229,7 +229,7 @@ class ResNet(nn.Module):
         features=num_classes,
         dtype=dtype,
         train=self.train,
-        quant_context=self.quant_context,
+        dynamic_context=self.dynamic_context,
         paxis_name=self.paxis_name,
         hparams=hparams.dense_layer,
     )(x, padding_mask=None)
@@ -247,7 +247,7 @@ def create_resnet(hparams, dtype, train, **kwargs):
       num_classes=1000,
       dtype=dtype,
       hparams=hparams,
-      quant_context=quant_config.QuantContext(
+      dynamic_context=quant_config.DynamicContext(
           update_bounds=False, quantize_weights=True),
       num_filters=64,
       train=train,

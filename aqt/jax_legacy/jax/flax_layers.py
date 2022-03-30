@@ -101,7 +101,7 @@ class DenseAqt(nn.Module):
   paxis_name: Optional[str]
   features: Union[int, Tuple[int, ...]]
   train: bool
-  quant_context: quant_config.QuantContext
+  dynamic_context: quant_config.DynamicContext
   dtype: Any
   use_bias: bool = True
   kernel_init: InitializerType = default_kernel_init
@@ -138,7 +138,7 @@ class DenseAqt(nn.Module):
       shape_utils.assert_shapes_equal(padding_mask.shape, (batch_size, 1))
     # TODO(wanglisa): Replace fake quant with AQT.
 
-    if self.quant_context.collect_acts_stats:
+    if self.dynamic_context.collect_acts_stats:
       stats_tag.StatsTag(
           channel_axis=-1, name='inputs', update_stats=self.train)(
               inputs, mask=padding_mask)
@@ -171,7 +171,7 @@ class DenseAqt(nn.Module):
 
 
     get_bounds_params = get_bounds.GetBounds.Params(
-        update_bounds=self.quant_context.update_bounds,
+        update_bounds=self.dynamic_context.update_bounds,
         update_stats=self.train,
         paxis_name=self.paxis_name,
         mask=padding_mask)
@@ -213,7 +213,7 @@ class DenseAqt(nn.Module):
         get_bounds_params=get_bounds_params,
         dimension_numbers=(contracting_dims, batch_dims),
         dot_precision=self.precision,
-        prefer_int8_to_int32_dot=self.quant_context.prefer_int8_to_int32_dot)
+        prefer_int8_to_int32_dot=self.dynamic_context.prefer_int8_to_int32_dot)
 
     # bias
     if self.use_bias:
@@ -277,7 +277,7 @@ class ConvAqt(nn.Module):
   hparams: HParams
   features: int
   kernel_size: Tuple[int, ...]
-  quant_context: quant_config.QuantContext
+  dynamic_context: quant_config.DynamicContext
   train: bool
   paxis_name: Optional[str]
   dtype: Any
@@ -328,7 +328,7 @@ class ConvAqt(nn.Module):
           inputs=inputs,
           hparams=hparams.quant_act,
           get_bounds_params=get_bounds.GetBounds.Params(
-              update_bounds=self.quant_context.update_bounds,
+              update_bounds=self.dynamic_context.update_bounds,
               update_stats=self.train,
               paxis_name=self.paxis_name))
 
@@ -347,7 +347,7 @@ class ConvAqt(nn.Module):
               axis=kernel_reduction_axis,
               expected_scale_shape=expected_scale_shape),
           quantized_type=quantized_type,
-          quantize_weights=self.quant_context.quantize_weights)
+          quantize_weights=self.dynamic_context.quantize_weights)
 
     # Convolution
     dimension_numbers = flax.linen.linear._conv_dimension_numbers(
@@ -430,7 +430,7 @@ class EmbedAqt(nn.Module):
   dtype: Any
   paxis_name: Optional[str]
   train: bool
-  quant_context: quant_config.QuantContext
+  dynamic_context: quant_config.DynamicContext
   embedding_init: InitializerType = default_embed_init
 
   def setup(self):
@@ -447,7 +447,7 @@ class EmbedAqt(nn.Module):
         act_hparams=hparams.quant_act,
         quant_type=hparams.quant_type,
         dot_precision=None,
-        prefer_int8_to_int32_dot=self.quant_context.prefer_int8_to_int32_dot,
+        prefer_int8_to_int32_dot=self.dynamic_context.prefer_int8_to_int32_dot,
         weight_params=QuantOps.WeightParams(
             prec=hparams.weight_prec,
             axis=(0,),
@@ -557,7 +557,7 @@ class EmbedAqt(nn.Module):
     # TODO(malmaud): Remove the 'mask' field from this struct so we can
     # make this struct a hyperparameter of the EncoderAqt class.
     get_bounds_params = get_bounds.GetBounds.Params(
-        update_bounds=self.quant_context.update_bounds,
+        update_bounds=self.dynamic_context.update_bounds,
         update_stats=self.train,
         paxis_name=self.paxis_name,
         mask=padding_mask,
@@ -609,7 +609,7 @@ class LayerNormAqt(nn.Module):
 
   hparams: HParams
   dtype: Any
-  quant_context: quant_config.QuantContext
+  dynamic_context: quant_config.DynamicContext
   epsilon: float = 1e-6
   use_bias: bool = True
   use_scale: bool = True
@@ -734,6 +734,6 @@ class LayerNormAqt(nn.Module):
 
     quantized_result = quantized_layernorm(x)
     unquantized_result = unquantized_layernorm(x)
-    return lax.cond(self.quant_context.quantize_acts,
+    return lax.cond(self.dynamic_context.quantize_acts,
                     lambda _: quantized_result, lambda _: unquantized_result,
                     None)
