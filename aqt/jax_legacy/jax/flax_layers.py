@@ -224,7 +224,10 @@ class DenseAqt(nn.Module):
       bias = jnp.asarray(bias, self.dtype)
       bias = jnp.reshape(bias, features)
       # (batch_size, features)
-      y = y + bias[jnp.newaxis, :]
+      # Surya: Dimensional reduction is not working as expected.
+      # y = y + bias[jnp.newaxis, :]
+      y = y + jnp.reshape(bias, (1,) * (y.ndim - 1) + (-1,))
+
     return y
 
 
