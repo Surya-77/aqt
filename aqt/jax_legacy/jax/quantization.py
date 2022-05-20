@@ -896,9 +896,10 @@ def quantized_dot_general(
     use_int8_to_int32_dot = prefer_int8_to_int32_dot & weight_fits_in_int8 & act_fits_in_int8
 
     metadata_context = contextlib.suppress()
-    if flags.FLAGS.metadata_enabled:
-      metadata_context = compute_cost_utils.DotMetadataMonkeyPatch(
-          lhs_prec=act_prec, rhs_prec=weight_prec, rhs_is_weight=True)
+    # Surya : Comment unknown flag usage. Renable once understood.
+    # if flags.FLAGS.metadata_enabled:
+    #   metadata_context = compute_cost_utils.DotMetadataMonkeyPatch(
+    #       lhs_prec=act_prec, rhs_prec=weight_prec, rhs_is_weight=True)
     with metadata_context:
       # Calculate matmul(...)
       out_quantized = dot_general_aqt(
@@ -948,9 +949,10 @@ def quantized_dot_general(
     act_prec = None if act_hparams is None else act_hparams.prec
     weight_prec = None if weight_params is None else weight_params.prec
 
-    if flags.FLAGS.metadata_enabled:
-      metadata_context = compute_cost_utils.DotMetadataMonkeyPatch(
-          lhs_prec=act_prec, rhs_prec=weight_prec, rhs_is_weight=True)
+    # Surya : Comment unknown flag usage. Renable once understood.
+    # if flags.FLAGS.metadata_enabled:
+    #   metadata_context = compute_cost_utils.DotMetadataMonkeyPatch(
+    #       lhs_prec=act_prec, rhs_prec=weight_prec, rhs_is_weight=True)
     with metadata_context:
       out_quantized = lax.dot_general(
           act, w, dimension_numbers=dimension_numbers, precision=dot_precision)
