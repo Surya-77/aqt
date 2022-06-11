@@ -23,7 +23,8 @@ import typing
 from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Type, Union
 
 from absl import flags
-from aqt.jax_legacy.jax import compute_cost_utils
+# Surya: Disable compute_cost_utils due to TF dependency.
+# from aqt.jax_legacy.jax import compute_cost_utils
 from aqt.jax_legacy.jax import get_bounds
 from aqt.jax_legacy.jax import quant_config
 from aqt.jax_legacy.jax import quantization
