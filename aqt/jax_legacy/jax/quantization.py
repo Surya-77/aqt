@@ -557,7 +557,8 @@ class QuantOps:
     ops = cls.create_input_ops(
         inputs, hparams=hparams, get_bounds_params=get_bounds_params)
 
-    quantized_inputs = ops.fake_quant(inputs, quantized_type=SCALE_DTYPE)
+    quantized_inputs = ops.fake_quant(inputs, quantized_type=SCALE_DTYPE).reshape(inputs.shape)
+
     return lax.cond(ops.should_quantize(), lambda _: quantized_inputs,
                     lambda _: inputs, None)
 

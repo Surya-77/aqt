@@ -130,7 +130,8 @@ def masked_mean(x: jnp.ndarray, *, mask: jnp.ndarray, axis: Iterable[int],
 class Stats:
   """Dataclass to keep track of statistics."""
 
-  n: int  # samples count
+  # n: int  # samples count
+  n: jnp.ndarray  # samples count
   mean: jnp.ndarray  # mean of values over axis
   mean_abs: jnp.ndarray  # mean of absolute values over axis
   mean_sq: jnp.ndarray  # mean of square values over axis
@@ -154,7 +155,7 @@ class Stats:
         1)  # no effect, but needed for flax.linen.initializers.zeros.
     shape = tuple(shape)
     return cls(
-        n=0,
+        n=flax.linen.initializers.zeros(key, (1,), jnp.int8),
         mean=flax.linen.initializers.zeros(key, shape, dtype),
         mean_abs=flax.linen.initializers.zeros(key, shape, dtype),
         mean_sq=flax.linen.initializers.zeros(key, shape, dtype),
@@ -218,9 +219,9 @@ class Stats:
       new_avg = old_avg + alpha * delta
       return new_avg
 
-    new_n = stats.n + 1
+    new_n = stats.n + jnp.array(1.0)
     if alpha is None:
-      alpha = 1. / new_n
+      alpha = jnp.array(1.0) / new_n
 
     new_mean = _moving_avg(stats.mean, samples, masked_reduction_fn=masked_mean)
     new_mean_abs = _moving_avg(

@@ -153,7 +153,7 @@ class GetBounds(nn.Module):
       return abs_max_x * hyper.clipping_coeff
 
     stats_state = self.variable('get_bounds', 'stats', Stats.stats_initializer,
-                                stats_shape)
+                                  stats_shape)
 
     def bound_initializer(shape):
       return hyper.initial_bound * jnp.ones(shape)
